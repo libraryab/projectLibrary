@@ -1,0 +1,28 @@
+{
+  "name": "projectlibrary",
+  "version": "1.0.0",
+  "description": "\"# projectLibrary\"",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/libraryab/projectLibrary.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/libraryab/projectLibrary/issues"
+  },
+  "homepage": "https://github.com/libraryab/projectLibrary#readme",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  }
+}
