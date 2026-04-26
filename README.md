@@ -5,12 +5,14 @@ A modern Node.js/Express backend for a university library management system with
 ## Features
 
 ✅ **Authentication System**
+
 - JWT-based authentication with bcrypt password hashing
 - User registration and login
 - Protected routes with middleware
 - 24-hour token expiration
 
 ✅ **REST API** (15+ endpoints)
+
 - Authentication (register, login, profile)
 - Library management
 - Book catalog with authors
@@ -19,12 +21,14 @@ A modern Node.js/Express backend for a university library management system with
 - Book reservations
 
 ✅ **Data Storage**
+
 - In-memory storage (development)
 - Arrays for users, books, members, loans, reservations
 - Data persists for session duration
 - Perfect for prototyping and testing
 
 ✅ **Developer Experience**
+
 - Auto-reload on file changes (`npm run dev`)
 - Comprehensive API documentation
 - Testing guide with examples
@@ -33,14 +37,17 @@ A modern Node.js/Express backend for a university library management system with
 ## Quick Start
 
 ### Prerequisites
+
 - Node.js 18+ and npm
 
 ### 1. Install Dependencies
+
 ```bash
 npm install
 ```
 
 ### 2. Start Server
+
 ```bash
 npm run dev
 ```
@@ -60,12 +67,14 @@ npm start
 ## API Documentation
 
 Complete API specification available in:
+
 - **Full Documentation:** [docs/API.md](docs/API.md)
 - **Testing Guide:** [TESTING_GUIDE.md](TESTING_GUIDE.md)
 
 ### Quick Example
 
 Register a user:
+
 ```bash
 curl -X POST http://localhost:3000/api/v1/auth/register \
   -H "Content-Type: application/json" \
@@ -78,6 +87,7 @@ curl -X POST http://localhost:3000/api/v1/auth/register \
 ```
 
 Login:
+
 ```bash
 curl -X POST http://localhost:3000/api/v1/auth/login \
   -H "Content-Type: application/json" \
@@ -113,6 +123,7 @@ docs/
 ## Data Storage
 
 **In-Memory Storage (Arrays):**
+
 - `users[]` - User authentication data
 - `books[]` - Book catalog
 - `authors[]` - Book authors
@@ -124,6 +135,7 @@ docs/
 ## Authentication
 
 ### Protected Routes
+
 These endpoints require a JWT token in the `Authorization` header:
 
 ```
@@ -131,6 +143,7 @@ Authorization: Bearer <your-jwt-token>
 ```
 
 Protected endpoints:
+
 - `POST /api/v1/books` - Create book
 - `PUT /api/v1/books/:id` - Update book
 - `DELETE /api/v1/books/:id` - Delete book
@@ -141,7 +154,9 @@ Protected endpoints:
 - `POST /api/v1/books/:bookId/authors` - Add author
 
 ### Public Routes
+
 These endpoints can be accessed without authentication:
+
 - `GET /api/v1/libraries` - View libraries
 - `GET /api/v1/books` - View books
 - `GET /api/v1/members` - View members
@@ -149,16 +164,19 @@ These endpoints can be accessed without authentication:
 ## Testing
 
 ### Using Postman/Thunder Client
+
 1. Import the endpoints from [TESTING_GUIDE.md](TESTING_GUIDE.md)
 2. Create a collection with example requests
 3. Use the provided request bodies and headers
 
 ### Using cURL
+
 See examples in [TESTING_GUIDE.md](TESTING_GUIDE.md)
 
 ## Environment Variables
 
 Create a `.env` file:
+
 ```env
 JWT_SECRET="your-secret-key-here"
 PORT=3000
@@ -183,6 +201,7 @@ npm run dev
 ## Git Workflow
 
 ### Commit Your Work
+
 ```bash
 git add .
 git commit -m "Add authentication and API endpoints"
@@ -190,6 +209,7 @@ git push origin main
 ```
 
 ### Create Feature Branch
+
 ```bash
 git checkout -b feature/new-feature
 git add .
@@ -204,6 +224,7 @@ curl http://localhost:3000/api/health
 ```
 
 Response:
+
 ```json
 {
   "status": "OK",
@@ -214,12 +235,15 @@ Response:
 ## Troubleshooting
 
 ### Port 3000 already in use
+
 Change port in `.env` or kill process on port 3000.
 
 ### Data not persisting
+
 Data is stored in-memory, so it resets when the server restarts. This is normal for development.
 
 ### Token invalid
+
 - Ensure token is copied correctly
 - Check token hasn't expired (24 hours)
 - Verify JWT_SECRET matches in `.env`
@@ -246,6 +270,8 @@ For issues or questions, check [TESTING_GUIDE.md](TESTING_GUIDE.md) for troubles
 ---
 
 **Deliverables Completed:**
+
+- ✅ Deliverable 1: Backend project with layered architecture (routes/controllers/services)
 - ✅ Deliverable 2: API Specification (15 endpoints documented)
 - ✅ Deliverable 3: Authentication System (JWT + bcrypt)
-" 
+- ✅ Deliverable 4: Prisma schema + migrations + PostgreSQL connection

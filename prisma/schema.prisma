@@ -46,16 +46,16 @@ model Library {
 }
 
 model Member {
-  id            String         @id @default(cuid())
-  userId        String         @unique
-  phone         String?
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  loans         Loan[]
-  reservations  Reservation[]
-  reviews       Review[]
+  id           String        @id @default(cuid())
+  userId       String        @unique
+  phone        String?
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  loans        Loan[]
+  reservations Reservation[]
+  reviews      Review[]
   notifications Notification[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }
 
 model Staff {
@@ -92,17 +92,17 @@ model Author {
 }
 
 model Loan {
-  id           String    @id @default(cuid())
-  bookCopyId   String
-  memberId     String
-  staffId      String?
-  bookId       String
-  loanDate     DateTime  @default(now())
-  dueDate      DateTime
+  id         String    @id @default(cuid())
+  bookCopyId String
+  memberId   String
+  staffId    String?
+  bookId     String
+  loanDate   DateTime  @default(now())
+  dueDate    DateTime
   returnedDate DateTime?
-  member       Member    @relation(fields: [memberId], references: [id], onDelete: Restrict)
-  staff        Staff?    @relation(fields: [staffId], references: [id], onDelete: SetNull)
-  book         Book      @relation(fields: [bookId], references: [id], onDelete: Restrict)
+  member     Member    @relation(fields: [memberId], references: [id], onDelete: Restrict)
+  staff      Staff?    @relation(fields: [staffId], references: [id], onDelete: SetNull)
+  book       Book      @relation(fields: [bookId], references: [id], onDelete: Restrict)
 
   @@index([memberId])
   @@index([bookId])
@@ -110,14 +110,14 @@ model Loan {
 
 model Reservation {
   id              String            @id @default(cuid())
-  bookId          String
-  bookCopyId      String?
-  memberId        String
-  reservationDate DateTime          @default(now())
-  status          ReservationStatus @default(ACTIVE)
-  successNotified Boolean           @default(false)
-  member          Member            @relation(fields: [memberId], references: [id], onDelete: Restrict)
-  book            Book              @relation(fields: [bookId], references: [id], onDelete: Restrict)
+  bookId           String
+  bookCopyId       String?
+  memberId         String
+  reservationDate  DateTime          @default(now())
+  status           ReservationStatus @default(ACTIVE)
+  successNotified  Boolean           @default(false)
+  member           Member            @relation(fields: [memberId], references: [id], onDelete: Restrict)
+  book             Book              @relation(fields: [bookId], references: [id], onDelete: Restrict)
 
   @@index([memberId])
   @@index([bookId])
@@ -138,13 +138,13 @@ model Review {
 }
 
 model Notification {
-  id        String    @id @default(cuid())
+  id        String   @id @default(cuid())
   memberId  String
   title     String
   message   String
   readAt    DateTime?
-  member    Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
-  createdAt DateTime  @default(now())
+  member    Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 
   @@index([memberId])
 }

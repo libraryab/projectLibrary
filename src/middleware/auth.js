@@ -29,4 +29,32 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
+const requireRole =
+  (...roles) =>
+  (req, res, next) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      return res.status(403).json({ error: "Forbidden: insufficient role" });
+    }
+
+    return next();
+  };
+
+const requireStaffType =
+  (...staffTypes) =>
+  (req, res, next) => {
+    if (!req.user || req.user.role !== "STAFF") {
+      return res.status(403).json({ error: "Forbidden: staff role required" });
+    }
+
+    if (!staffTypes.includes(req.user.staffType)) {
+      return res
+        .status(403)
+        .json({ error: "Forbidden: insufficient staff type" });
+    }
+
+    return next();
+  };
+
 module.exports = authMiddleware;
+module.exports.requireRole = requireRole;
+module.exports.requireStaffType = requireStaffType;
