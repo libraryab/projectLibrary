@@ -18,4 +18,20 @@ router.post(
   librariesController.createLibrary,
 );
 
+// ===== PUT /api/v1/libraries/:id =====
+router.put(
+  "/:id",
+  authMiddleware,
+  authMiddleware.requireStaffType("ADMIN"),
+  librariesController.updateLibrary,
+);
+
+// ===== DELETE /api/v1/libraries/:id =====
+router.delete(
+  "/:id",
+  authMiddleware,
+  authMiddleware.requireStaffType("ADMIN"),
+  librariesController.deleteLibrary,
+);
+
 module.exports = router;

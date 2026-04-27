@@ -15,6 +15,9 @@ router.post(
 // ===== GET /api/v1/loans =====
 router.get("/", loansController.getLoans);
 
+// ===== GET /api/v1/loans/:id =====
+router.get("/:id", loansController.getLoanById);
+
 // ===== GET /api/v1/loans/overdue =====
 router.get(
   "/overdue",

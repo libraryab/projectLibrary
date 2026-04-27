@@ -39,6 +39,16 @@ const getLoans = async ({ memberId, status }) => {
   });
 };
 
+const getLoanById = async (id) => {
+  const loan = await prisma.loan.findUnique({ where: { id } });
+  if (!loan) {
+    const error = new Error("Loan not found");
+    error.status = 404;
+    throw error;
+  }
+  return loan;
+};
+
 const getMemberLoans = async (memberId) => {
   const loans = await prisma.loan.findMany({
     where: { memberId },
@@ -91,6 +101,7 @@ const getOverdueLoans = async () => {
 module.exports = {
   createLoan,
   getLoans,
+  getLoanById,
   getMemberLoans,
   returnLoan,
   getOverdueLoans,

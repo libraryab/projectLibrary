@@ -22,6 +22,17 @@ const getLoans = async (req, res) => {
   }
 };
 
+const getLoanById = async (req, res) => {
+  try {
+    const loan = await loansService.getLoanById(req.params.id);
+    return res.status(200).json(loan);
+  } catch (error) {
+    return res
+      .status(error.status || 500)
+      .json({ error: error.message || "Internal server error" });
+  }
+};
+
 const getMemberLoans = async (req, res) => {
   try {
     const data = await loansService.getMemberLoans(req.params.memberId);
@@ -58,6 +69,7 @@ const getOverdueLoans = async (req, res) => {
 module.exports = {
   createLoan,
   getLoans,
+  getLoanById,
   getMemberLoans,
   returnLoan,
   getOverdueLoans,

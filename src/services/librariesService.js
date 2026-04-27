@@ -42,8 +42,38 @@ const createLibrary = async ({ name, location }) => {
   });
 };
 
+const updateLibrary = async (id, { name, location }) => {
+  const current = await prisma.library.findUnique({ where: { id } });
+  if (!current) {
+    const error = new Error("Library not found");
+    error.status = 404;
+    throw error;
+  }
+
+  return prisma.library.update({
+    where: { id },
+    data: {
+      name: name !== undefined ? name : current.name,
+      location: location !== undefined ? location : current.location,
+    },
+  });
+};
+
+const deleteLibrary = async (id) => {
+  const library = await prisma.library.findUnique({ where: { id } });
+  if (!library) {
+    const error = new Error("Library not found");
+    error.status = 404;
+    throw error;
+  }
+
+  return prisma.library.delete({ where: { id } });
+};
+
 module.exports = {
   getLibraries,
   getLibraryById,
   createLibrary,
+  updateLibrary,
+  deleteLibrary,
 };

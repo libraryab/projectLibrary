@@ -63,6 +63,41 @@ const getMemberReservations = async (memberId) => {
   };
 };
 
+const getReservationById = async (id) => {
+  const reservation = await prisma.reservation.findUnique({ where: { id } });
+  if (!reservation) {
+    const error = new Error("Reservation not found");
+    error.status = 404;
+    throw error;
+  }
+  return reservation;
+};
+
+const updateReservation = async (id, { status, bookCopyId }) => {
+  const reservation = await prisma.reservation.findUnique({ where: { id } });
+  if (!reservation) {
+    const error = new Error("Reservation not found");
+    error.status = 404;
+    throw error;
+  }
+
+  if (status && !["ACTIVE", "CANCELLED", "COMPLETED"].includes(status)) {
+    const error = new Error(
+      "Invalid status. Must be ACTIVE, CANCELLED, or COMPLETED",
+    );
+    error.status = 400;
+    throw error;
+  }
+
+  return prisma.reservation.update({
+    where: { id },
+    data: {
+      status: status || reservation.status,
+      bookCopyId: bookCopyId !== undefined ? bookCopyId : reservation.bookCopyId,
+    },
+  });
+};
+
 const cancelReservation = async (id) => {
   const reservation = await prisma.reservation.findUnique({ where: { id } });
 
@@ -79,5 +114,7 @@ module.exports = {
   createReservation,
   getReservations,
   getMemberReservations,
+  getReservationById,
+  updateReservation,
   cancelReservation,
 };
