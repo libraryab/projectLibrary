@@ -1,0 +1,157 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  MEMBER
+  STAFF
+}
+
+enum StaffType {
+  ADMIN
+  LIBRARIAN
+}
+
+enum ReservationStatus {
+  ACTIVE
+  CANCELLED
+  COMPLETED
+}
+
+model User {
+  id        String     @id @default(cuid())
+  name      String
+  email     String     @unique
+  password  String
+  role      UserRole
+  staffType StaffType?
+  member    Member?
+  staff     Staff?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Library {
+  id        String   @id @default(cuid())
+  name      String
+  location  String
+  books     Book[]
+  staff     Staff[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Member {
+  id           String        @id @default(cuid())
+  userId       String        @unique
+  phone        String?
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  loans        Loan[]
+  reservations Reservation[]
+  reviews      Review[]
+  notifications Notification[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Staff {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  libraryId String?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  library   Library? @relation(fields: [libraryId], references: [id], onDelete: SetNull)
+  loans     Loan[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Book {
+  id           String        @id @default(cuid())
+  title        String
+  publisherId  String?
+  libraryId    String
+  library      Library       @relation(fields: [libraryId], references: [id], onDelete: Restrict)
+  authors      Author[]
+  loans        Loan[]
+  reservations Reservation[]
+  reviews      Review[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Author {
+  id        String   @id @default(cuid())
+  bookId    String
+  name      String
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Loan {
+  id         String    @id @default(cuid())
+  bookCopyId String
+  memberId   String
+  staffId    String?
+  bookId     String
+  loanDate   DateTime  @default(now())
+  dueDate    DateTime
+  returnedDate DateTime?
+  member     Member    @relation(fields: [memberId], references: [id], onDelete: Restrict)
+  staff      Staff?    @relation(fields: [staffId], references: [id], onDelete: SetNull)
+  book       Book      @relation(fields: [bookId], references: [id], onDelete: Restrict)
+
+  @@index([memberId])
+  @@index([bookId])
+}
+
+model Reservation {
+  id              String            @id @default(cuid())
+  bookId           String
+  bookCopyId       String?
+  memberId         String
+  reservationDate  DateTime          @default(now())
+  status           ReservationStatus @default(ACTIVE)
+  successNotified  Boolean           @default(false)
+  member           Member            @relation(fields: [memberId], references: [id], onDelete: Restrict)
+  book             Book              @relation(fields: [bookId], references: [id], onDelete: Restrict)
+
+  @@index([memberId])
+  @@index([bookId])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  memberId  String
+  bookId    String
+  rating    Int
+  comment   String?
+  member    Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([memberId, bookId])
+  @@index([bookId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  memberId  String
+  title     String
+  message   String
+  readAt    DateTime?
+  member    Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([memberId])
+}
+
+model SystemConfig {
+  id                 String   @id @default("default")
+  maxBooksPerStudent Int      @default(3)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
