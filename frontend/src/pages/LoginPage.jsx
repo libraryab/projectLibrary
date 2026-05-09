@@ -30,7 +30,18 @@ function LoginPage() {
 
     try {
       const response = await authService.login(formData.email, formData.password)
-      login(response.user)
+      
+      // Extract user data and role from response (handle different response structures)
+      const userData = response.user || response
+      const userWithRole = {
+        ...userData,
+        role: userData.role || userData.userRole || 'member'
+      }
+      
+      console.log('Login response:', response)
+      console.log('User data:', userWithRole)
+      
+      login(userWithRole)
       
       // Redirect to where they came from or dashboard
       const from = location.state?.from?.pathname || '/dashboard'

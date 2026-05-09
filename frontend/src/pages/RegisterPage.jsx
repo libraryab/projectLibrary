@@ -56,7 +56,18 @@ function RegisterPage() {
         role: formData.role,
         staffType: formData.role === 'STAFF' ? formData.staffType : undefined,
       })
-      login(response.user)
+      
+      // Extract user data and role from response (handle different response structures)
+      const userData = response.user || response
+      const userWithRole = {
+        ...userData,
+        role: userData.role || userData.userRole || 'member'
+      }
+      
+      console.log('Registration response:', response)
+      console.log('User data:', userWithRole)
+      
+      login(userWithRole)
       navigate('/dashboard')
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.')
