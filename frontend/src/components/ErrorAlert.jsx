@@ -3,6 +3,14 @@
  * Displays an error message with optional retry button
  */
 function ErrorAlert({ error, onRetry }) {
+  const errorMessage =
+    typeof error === 'string'
+      ? error
+      : error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        'Failed to load data. Please try again.'
+
   return (
     <div className="bg-red-50 border border-red-200 rounded-lg p-6 my-6">
       <div className="flex items-start gap-4">
@@ -29,9 +37,7 @@ function ErrorAlert({ error, onRetry }) {
             Something went wrong
           </h3>
           <p className="text-red-700 mb-4">
-            {error?.response?.data?.message ||
-              error?.message ||
-              'Failed to load data. Please try again.'}
+            {errorMessage}
           </p>
 
           {/* Retry button */}

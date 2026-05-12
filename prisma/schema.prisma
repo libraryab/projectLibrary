@@ -72,6 +72,9 @@ model Staff {
 model Book {
   id           String        @id @default(cuid())
   title        String
+  isbn         String?
+  year         Int?
+  description  String?
   publisherId  String?
   libraryId    String
   library      Library       @relation(fields: [libraryId], references: [id], onDelete: Restrict)

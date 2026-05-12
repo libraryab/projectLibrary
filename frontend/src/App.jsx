@@ -7,10 +7,15 @@ import RegisterPage from './pages/RegisterPage'
 import AdminDashboardPage from './pages/AdminDashboardPage'
 import AdminLoansPage from './pages/AdminLoansPage'
 import AdminAddBooksPage from './pages/AdminAddBooksPage'
+import AdminUsersPage from './pages/AdminUsersPage'
 import MemberBooksPage from './pages/MemberBooksPage'
+import MemberReservationsPage from './pages/MemberReservationsPage'
 import MemberLoansPage from './pages/MemberLoansPage'
 import LoansManagementPage from './pages/LoansManagementPage'
 import ProtectedRoute from './components/ProtectedRoute'
+import AdminBooksPage from './pages/AdminBooksPage'
+import AdminEditBooksPage from './pages/AdminEditBooksPage'
+import BookDetailPage from './pages/BookDetailPage'
 
 // Component to handle role-based routing
 function RoleBasedRedirect() {
@@ -36,7 +41,7 @@ function App() {
           <Route
             path="/admin-dashboard"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin']}>
                 <MainLayout>
                   <AdminDashboardPage />
                 </MainLayout>
@@ -46,7 +51,7 @@ function App() {
           <Route
             path="/admin-loans"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin']}>
                 <MainLayout>
                   <AdminLoansPage />
                 </MainLayout>
@@ -56,7 +61,7 @@ function App() {
           <Route
             path="/admin-add-books"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin']}>
                 <MainLayout>
                   <AdminAddBooksPage />
                 </MainLayout>
@@ -64,7 +69,38 @@ function App() {
             }
           />
 
-          {/* Member Routes */}
+          <Route
+            path="/admin-users"
+            element={
+              <ProtectedRoute allowedRoles={['admin']} allowedStaffTypes={['ADMIN']}>
+                <MainLayout>
+                  <AdminUsersPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin-books"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <MainLayout>
+                  <AdminBooksPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin-books/edit/:bookId"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <MainLayout>
+                  <AdminEditBooksPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path="/books"
             element={
@@ -75,6 +111,27 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/books/:bookId"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <BookDetailPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-reservations"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <MemberReservationsPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path="/my-loans"
             element={
@@ -90,7 +147,7 @@ function App() {
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin']}>
                 <MainLayout>
                   <AdminDashboardPage />
                 </MainLayout>
@@ -100,7 +157,7 @@ function App() {
           <Route
             path="/loans"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin']}>
                 <MainLayout>
                   <LoansManagementPage />
                 </MainLayout>

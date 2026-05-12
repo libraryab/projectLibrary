@@ -41,6 +41,12 @@ const getBooks = async ({ search, skip = 0, take = 10 }) => {
           },
           select: { id: true },
         },
+        reservations: {
+          where: {
+            status: "ACTIVE",
+          },
+          select: { id: true },
+        },
       },
     }),
     prisma.book.count({ where }),
@@ -50,6 +56,7 @@ const getBooks = async ({ search, skip = 0, take = 10 }) => {
     ...book,
     isAvailable: book.loans.length === 0,
     activeLoanCount: book.loans.length,
+    activeReservationCount: book.reservations.length,
   }));
 
   return {
@@ -63,7 +70,21 @@ const getBooks = async ({ search, skip = 0, take = 10 }) => {
 const getBookById = async (id) => {
   const book = await prisma.book.findUnique({
     where: { id },
-    include: { authors: true },
+    include: {
+      authors: true,
+      loans: {
+        where: {
+          returnedDate: null,
+        },
+        select: { id: true },
+      },
+      reservations: {
+        where: {
+          status: "ACTIVE",
+        },
+        select: { id: true },
+      },
+    },
   });
 
   if (!book) {
@@ -72,28 +93,41 @@ const getBookById = async (id) => {
     throw error;
   }
 
-  return book;
+  return {
+    ...book,
+    isAvailable: book.loans.length === 0,
+    activeLoanCount: book.loans.length,
+    activeReservationCount: book.reservations.length,
+  };
 };
 
-const createBook = async ({ title, publisherId, libraryId }) => {
+const createBook = async ({ title, publisherId, libraryId, isbn, year, description, authors }) => {
   if (!title || !libraryId) {
     const error = new Error("Missing required fields: title, libraryId");
     error.status = 400;
     throw error;
   }
 
+  const data = {
+    title,
+    publisherId: publisherId || null,
+    libraryId,
+    isbn: isbn || null,
+    year: year !== undefined && year !== null ? Number(year) : null,
+    description: description || null,
+    authors: authors && Array.isArray(authors) ? {
+      create: authors.map(name => ({ name }))
+    } : undefined,
+  }
+
   return prisma.book.create({
-    data: {
-      title,
-      publisherId: publisherId || null,
-      libraryId,
-    },
+    data,
     include: { authors: true },
   });
 };
 
-const updateBook = async (id, { title, publisherId }) => {
-  const current = await prisma.book.findUnique({ where: { id } });
+const updateBook = async (id, { title, publisherId, isbn, year, description, authors }) => {
+  const current = await prisma.book.findUnique({ where: { id }, include: { authors: true } });
 
   if (!current) {
     const error = new Error("Book not found");
@@ -101,12 +135,24 @@ const updateBook = async (id, { title, publisherId }) => {
     throw error;
   }
 
+  const updateData = {
+    title: title ?? current.title,
+    publisherId: publisherId ?? current.publisherId,
+    isbn: isbn !== undefined ? (isbn || null) : current.isbn,
+    year: year !== undefined && year !== null ? Number(year) : current.year,
+    description: description !== undefined ? (description || null) : current.description,
+  }
+
+  // If authors provided, remove existing and recreate
+  if (authors && Array.isArray(authors)) {
+    // Delete existing authors
+    await prisma.author.deleteMany({ where: { bookId: id } })
+    updateData.authors = { create: authors.map(name => ({ name })) }
+  }
+
   return prisma.book.update({
     where: { id },
-    data: {
-      title: title ?? current.title,
-      publisherId: publisherId ?? current.publisherId,
-    },
+    data: updateData,
     include: { authors: true },
   });
 };
@@ -120,7 +166,16 @@ const deleteBook = async (id) => {
     throw error;
   }
 
-  await prisma.book.delete({ where: { id } });
+  // Delete related records that would block deletion due to foreign keys.
+  // We delete reservations, loans, reviews and authors related to the book,
+  // then delete the book itself in a single transaction to keep DB consistent.
+  await prisma.$transaction(async (tx) => {
+    await tx.reservation.deleteMany({ where: { bookId: id } })
+    await tx.loan.deleteMany({ where: { bookId: id } })
+    await tx.review.deleteMany({ where: { bookId: id } })
+    await tx.author.deleteMany({ where: { bookId: id } })
+    await tx.book.delete({ where: { id } })
+  })
 };
 
 module.exports = {

@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createBook } from '../services/booksService'
+import { createLibrary, getAllLibraries } from '../services/librariesService'
 
 function AdminAddBooksPage() {
   const [formData, setFormData] = useState({
@@ -11,15 +12,45 @@ function AdminAddBooksPage() {
   })
 
   const [loading, setLoading] = useState(false)
+  const [initializing, setInitializing] = useState(true)
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(false)
   const [message, setMessage] = useState('')
+  const [libraryId, setLibraryId] = useState('')
+
+  useEffect(() => {
+    const ensureLibrary = async () => {
+      try {
+        const data = await getAllLibraries()
+        const libraries = Array.isArray(data) ? data : []
+
+        if (libraries.length > 0) {
+          setLibraryId(libraries[0].id)
+          return
+        }
+
+        const createdLibrary = await createLibrary({
+          name: 'Main Library',
+          location: 'Default Location',
+        })
+
+        setLibraryId(createdLibrary.id)
+      } catch (err) {
+        console.error('Error preparing library context:', err)
+        setError('Failed to prepare library context')
+      } finally {
+        setInitializing(false)
+      }
+    }
+
+    ensureLibrary()
+  }, [])
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: name === 'year' ? parseInt(value) : value
+      [name]: name === 'year' ? parseInt(value, 10) : value,
     }))
   }
 
@@ -30,28 +61,30 @@ function AdminAddBooksPage() {
     setSuccess(false)
 
     try {
-      // Validate required fields
       if (!formData.title.trim() || !formData.author.trim()) {
         setError('Title and Author are required')
         setLoading(false)
         return
       }
 
-      // Make API call to add book
-      const response = await createBook({
+      if (!libraryId) {
+        setError('Library is not ready yet. Please try again.')
+        setLoading(false)
+        return
+      }
+
+      await createBook({
         title: formData.title.trim(),
         author: formData.author.trim(),
         isbn: formData.isbn.trim(),
         description: formData.description.trim(),
         year: formData.year,
-        isAvailable: true
+        libraryId,
       })
 
-      // Success
       setSuccess(true)
       setMessage(`Book "${formData.title}" added successfully!`)
-      
-      // Reset form
+
       setFormData({
         title: '',
         author: '',
@@ -60,18 +93,12 @@ function AdminAddBooksPage() {
         year: new Date().getFullYear(),
       })
 
-      // Clear success message after 3 seconds
       setTimeout(() => {
         setSuccess(false)
         setMessage('')
       }, 3000)
     } catch (err) {
       console.error('Error adding book:', err)
-      console.error('Error response:', err.response)
-      console.error('Error message:', err.message)
-      console.error('Error status:', err.response?.status)
-      console.error('Error data:', err.response?.data)
-      
       setError(
         err.response?.data?.message ||
         err.response?.data?.error ||
@@ -85,7 +112,6 @@ function AdminAddBooksPage() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
       <div>
         <h2 className="text-3xl font-bold text-gray-900">Add New Book</h2>
         <p className="text-gray-600 mt-2">
@@ -93,7 +119,6 @@ function AdminAddBooksPage() {
         </p>
       </div>
 
-      {/* Success Alert */}
       {success && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-green-800 flex items-center gap-3">
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -103,7 +128,6 @@ function AdminAddBooksPage() {
         </div>
       )}
 
-      {/* Error Alert */}
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800 flex items-center gap-3">
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -113,10 +137,14 @@ function AdminAddBooksPage() {
         </div>
       )}
 
-      {/* Form */}
+      {initializing && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-blue-800">
+          Preparing library context...
+        </div>
+      )}
+
       <div className="bg-white rounded-lg shadow-md p-8 max-w-2xl">
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Title */}
           <div>
             <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
               Book Title <span className="text-red-600">*</span>
@@ -134,7 +162,6 @@ function AdminAddBooksPage() {
             />
           </div>
 
-          {/* Author */}
           <div>
             <label htmlFor="author" className="block text-sm font-medium text-gray-700 mb-2">
               Author <span className="text-red-600">*</span>
@@ -152,7 +179,6 @@ function AdminAddBooksPage() {
             />
           </div>
 
-          {/* ISBN */}
           <div>
             <label htmlFor="isbn" className="block text-sm font-medium text-gray-700 mb-2">
               ISBN (Optional)
@@ -169,7 +195,6 @@ function AdminAddBooksPage() {
             />
           </div>
 
-          {/* Year */}
           <div>
             <label htmlFor="year" className="block text-sm font-medium text-gray-700 mb-2">
               Publication Year
@@ -187,7 +212,6 @@ function AdminAddBooksPage() {
             />
           </div>
 
-          {/* Description */}
           <div>
             <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
               Description (Optional)
@@ -204,13 +228,14 @@ function AdminAddBooksPage() {
             ></textarea>
           </div>
 
-          {/* Submit Button */}
+          <input type="hidden" name="libraryId" value={libraryId} readOnly />
+
           <div className="flex gap-4">
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || initializing}
               className={`px-6 py-3 rounded-lg font-semibold transition duration-200 ${
-                loading
+                loading || initializing
                   ? 'bg-gray-200 text-gray-600 cursor-not-allowed'
                   : 'bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer'
               }`}
@@ -224,7 +249,7 @@ function AdminAddBooksPage() {
                 'Add Book to Library'
               )}
             </button>
-            
+
             <button
               type="reset"
               disabled={loading}
@@ -248,14 +273,12 @@ function AdminAddBooksPage() {
           </div>
         </form>
 
-        {/* Form Info */}
         <div className="mt-6 pt-6 border-t border-gray-200">
           <h3 className="text-sm font-semibold text-gray-700 mb-3">Form Notes:</h3>
           <ul className="text-sm text-gray-600 space-y-2">
             <li>✓ <span className="text-red-600">*</span> = Required field</li>
-            <li>✓ Books are automatically set as "Available" when added</li>
-            <li>✓ ISBN is optional but recommended</li>
-            <li>✓ Description helps members understand the book</li>
+            <li>✓ The library is selected automatically behind the scenes</li>
+            <li>✓ If no library exists, one is created automatically</li>
           </ul>
         </div>
       </div>

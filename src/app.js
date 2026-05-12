@@ -8,6 +8,7 @@ const librariesRoutes = require("./routes/libraries");
 const booksRoutes = require("./routes/books");
 const authorsRoutes = require("./routes/authors");
 const membersRoutes = require("./routes/members");
+const usersRoutes = require("./routes/users");
 const loansRoutes = require("./routes/loans");
 const reservationsRoutes = require("./routes/reservations");
 
@@ -38,6 +39,9 @@ app.use("/api/v1/books/:bookId/authors", authorsRoutes);
 
 // Members routes
 app.use("/api/v1/members", membersRoutes);
+
+// Users routes
+app.use("/api/v1/users", usersRoutes);
 
 // Loans routes
 app.use("/api/v1/loans", loansRoutes);

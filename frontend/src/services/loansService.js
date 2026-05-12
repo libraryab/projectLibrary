@@ -10,7 +10,7 @@ const API_BASE_URL = '/api/v1'
 export const getAllLoans = async () => {
   try {
     const response = await axios.get(`${API_BASE_URL}/loans`)
-    const loans = response.data.data || response.data
+    const loans = response.data?.value || response.data?.data || response.data
     return Array.isArray(loans) ? loans : []
   } catch (error) {
     console.error('Error fetching loans:', error)
@@ -40,9 +40,9 @@ export const getLoanById = async (loanId) => {
 export const getActiveLoans = async () => {
   try {
     const response = await axios.get(`${API_BASE_URL}/loans`)
-    const loans = response.data.data || response.data
+    const loans = response.data?.value || response.data?.data || response.data
     if (!Array.isArray(loans)) return []
-    return loans.filter(loan => loan.returnDate === null)
+    return loans.filter(loan => loan.returnedDate === null)
   } catch (error) {
     console.error('Error fetching active loans:', error)
     throw error
@@ -56,9 +56,9 @@ export const getActiveLoans = async () => {
 export const getActiveLoansCount = async () => {
   try {
     const response = await axios.get(`${API_BASE_URL}/loans`)
-    const loans = response.data.data || response.data
+    const loans = response.data?.value || response.data?.data || response.data
     if (!Array.isArray(loans)) return 0
-    return loans.filter(loan => loan.returnDate === null).length
+    return loans.filter(loan => loan.returnedDate === null).length
   } catch (error) {
     console.error('Error counting active loans:', error)
     throw error
@@ -83,6 +83,21 @@ export const returnLoan = async (loanId) => {
     return response.data.data || response.data
   } catch (error) {
     console.error(`Error returning loan ${loanId}:`, error)
+    throw error
+  }
+}
+
+/**
+ * Get member's loans
+ * @param {string} memberId - The member ID
+ * @returns {Promise<Object>} Object with member and loans array
+ */
+export const getMemberLoans = async (memberId) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/loans/member/${memberId}`)
+    return response.data?.data || response.data
+  } catch (error) {
+    console.error(`Error fetching member loans for ${memberId}:`, error)
     throw error
   }
 }

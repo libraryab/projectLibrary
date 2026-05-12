@@ -8,6 +8,16 @@ import {
   getDueInfo
 } from '../services/loansService'
 
+const formatDateDDMMYYYY = (dateValue) => {
+  const date = new Date(dateValue)
+  if (Number.isNaN(date.getTime())) return '-'
+
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = date.getFullYear()
+  return `${day}/${month}/${year}`
+}
+
 function AdminLoansPage() {
   // State for loans
   const [loans, setLoans] = useState([])
@@ -221,8 +231,10 @@ function AdminLoansPage() {
               <tbody className="divide-y divide-gray-200">
                 {filteredLoans.map((loan) => {
                   const { isOverdue, daysRemaining } = getDueInfo(loan.dueDate)
-                  const loanDate = new Date(loan.loanDate).toLocaleDateString()
-                  const dueDate = new Date(loan.dueDate).toLocaleDateString()
+                  const loanDate = formatDateDDMMYYYY(loan.loanDate)
+                  const dueDate = formatDateDDMMYYYY(loan.dueDate)
+                  const loanStatus = loan.status || (isOverdue ? 'OVERDUE' : 'ACTIVE')
+                  const statusLabel = loanStatus === 'OVERDUE' ? 'Overdue' : 'Loaned'
 
                   return (
                     <tr key={loan.id} className="hover:bg-gray-50 transition">
@@ -242,19 +254,19 @@ function AdminLoansPage() {
                         <div className="flex items-center gap-2">
                           <span
                             className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                              isOverdue
+                              loanStatus === 'OVERDUE'
                                 ? 'bg-red-100 text-red-800'
                                 : 'bg-green-100 text-green-800'
                             }`}
                           >
-                            {isOverdue ? 'Overdue' : 'Active'}
+                            {statusLabel}
                           </span>
-                          {!isOverdue && daysRemaining <= 3 && (
+                          {loanStatus !== 'OVERDUE' && daysRemaining <= 3 && (
                             <span className="text-xs text-yellow-700 font-medium">
                               {daysRemaining} days left
                             </span>
                           )}
-                          {isOverdue && (
+                          {loanStatus === 'OVERDUE' && (
                             <span className="text-xs text-red-700 font-medium">
                               {Math.abs(daysRemaining)} days overdue
                             </span>

@@ -34,6 +34,21 @@ export const getReservationById = async (reservationId) => {
 }
 
 /**
+ * Get reservations for a member
+ * @param {string} memberId - The member ID
+ * @returns {Promise<Object>} Member reservations payload
+ */
+export const getMemberReservations = async (memberId) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/reservations/member/${memberId}`)
+    return response.data.data || response.data
+  } catch (error) {
+    console.error(`Error fetching reservations for member ${memberId}:`, error)
+    throw error
+  }
+}
+
+/**
  * Create a new reservation
  * @param {Object} reservationData - { bookId, memberId }
  * @returns {Promise<Object>} Created reservation object
@@ -103,9 +118,9 @@ export const getRecentReservations = async (limit = 5) => {
     const reservations = response.data.data || response.data
     if (!Array.isArray(reservations)) return []
     
-    // Sort by creation date (newest first) and limit
+    // Sort by reservation date (newest first) and limit
     return reservations
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .sort((a, b) => new Date(b.reservationDate || b.createdAt) - new Date(a.reservationDate || a.createdAt))
       .slice(0, limit)
   } catch (error) {
     console.error('Error fetching recent reservations:', error)

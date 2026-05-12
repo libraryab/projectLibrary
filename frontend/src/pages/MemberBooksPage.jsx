@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ErrorAlert from '../components/ErrorAlert'
@@ -8,9 +9,26 @@ import {
   getAvailableBooks,
   searchBooksByTitle
 } from '../services/booksService'
-import { createLoan } from '../services/loansService'
+import { createReservation } from '../services/reservationsService'
+
+const getBookStatus = (book) => {
+  if (!book.isAvailable) {
+    return { label: 'Loaned', className: 'bg-red-100 text-red-800' }
+  }
+
+  if ((book.activeReservationCount || 0) > 0) {
+    return {
+      label: `Reserved (${book.activeReservationCount})`,
+      className: 'bg-yellow-100 text-yellow-800',
+    }
+  }
+
+  return { label: 'Available', className: 'bg-green-100 text-green-800' }
+}
 
 function MemberBooksPage() {
+    const navigate = useNavigate()
+
   // State for books
   const [allBooks, setAllBooks] = useState([])
   const [filteredBooks, setFilteredBooks] = useState([])
@@ -22,7 +40,7 @@ function MemberBooksPage() {
   // State for UI
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [loaningBookId, setLoaningBookId] = useState(null)
+  const [reservingBookId, setReservingBookId] = useState(null)
   const [successMessage, setSuccessMessage] = useState('')
 
   const { user } = useAuth()
@@ -74,34 +92,34 @@ function MemberBooksPage() {
     }
   }
 
-  const handleLoanBook = async (bookId) => {
+  const handleReserveBook = async (bookId) => {
     try {
-      setLoaningBookId(bookId)
+      setReservingBookId(bookId)
       setError(null)
 
       if (!user?.id) {
-        setError(new Error('You must be logged in to loan a book'))
-        setLoaningBookId(null)
+        setError(new Error('You must be logged in to reserve a book'))
+        setReservingBookId(null)
         return
       }
 
-      // Create loan request
-      const response = await createLoan({
+      await createReservation({
         bookId,
-        memberId: user.id
       })
 
+      window.dispatchEvent(new CustomEvent('libraryDataChanged'))
+
       // Show success message
-      setSuccessMessage('Book loaned successfully! Return it before the due date.')
+      setSuccessMessage('Book reserved successfully! The admin will handle the loan.')
       setTimeout(() => setSuccessMessage(''), 3000)
 
       // Reload books to update availability
       loadBooks()
     } catch (err) {
-      console.error('Failed to loan book:', err)
+      console.error('Failed to reserve book:', err)
       setError(err)
     } finally {
-      setLoaningBookId(null)
+      setReservingBookId(null)
     }
   }
 
@@ -111,9 +129,9 @@ function MemberBooksPage() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h2 className="text-3xl font-bold text-gray-900">Browse & Loan Books</h2>
+        <h2 className="text-3xl font-bold text-gray-900">Browse & Reserve Books</h2>
         <p className="text-gray-600 mt-2">
-          Browse our collection and loan books for yourself.
+          Browse our collection and reserve books as a member.
         </p>
       </div>
 
@@ -210,15 +228,16 @@ function MemberBooksPage() {
 
                 {/* Availability Status */}
                 <div className="mb-4">
+                  {(() => {
+                    const status = getBookStatus(book)
+                    return (
                   <span
-                    className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                      book.isAvailable
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}
+                      className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${status.className}`}
                   >
-                    {book.isAvailable ? 'Available' : 'Not Available'}
-                  </span>
+                      {status.label}
+                    </span>
+                    )
+                  })()}
                 </div>
 
                 {/* Book Description */}
@@ -229,26 +248,35 @@ function MemberBooksPage() {
                 )}
 
                 {/* Loan Button */}
+                                {/* Action Buttons */}
+                                <div className="flex gap-3">
                 <button
-                  onClick={() => handleLoanBook(book.id)}
-                  disabled={!book.isAvailable || loaningBookId === book.id}
-                  className={`w-full py-2 px-4 rounded-lg font-semibold transition duration-200 ${
+                  onClick={() => handleReserveBook(book.id)}
+                  disabled={!book.isAvailable || reservingBookId === book.id}
+                  className={`flex-1 py-2 px-4 rounded-lg font-semibold transition duration-200 ${
                     book.isAvailable
                       ? 'bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer'
                       : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                  } ${loaningBookId === book.id ? 'opacity-75' : ''}`}
+                  } ${reservingBookId === book.id ? 'opacity-75' : ''}`}
                 >
-                  {loaningBookId === book.id ? (
+                  {reservingBookId === book.id ? (
                     <span className="flex items-center justify-center gap-2">
                       <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                      Loaning...
+                      Reserving...
                     </span>
                   ) : book.isAvailable ? (
-                    'Loan Book'
+                    'Reserve Book'
                   ) : (
                     'Not Available'
                   )}
                 </button>
+                              <button
+                                onClick={() => navigate(`/books/${book.id}`)}
+                                className="flex-1 py-2 px-4 rounded-lg font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 transition duration-200"
+                              >
+                                View Details
+                              </button>
+                              </div>
               </div>
             </div>
           ))}
@@ -267,10 +295,10 @@ function MemberBooksPage() {
         <h3 className="text-lg font-semibold text-blue-900 mb-3">How to Loan Books</h3>
         <ul className="text-blue-800 space-y-2 text-sm">
           <li>✓ Find a book you want to loan</li>
-          <li>✓ Click "Loan Book" button (only available books can be loaned)</li>
-          <li>✓ The book will be added to your loans with a due date</li>
-          <li>✓ Check <strong>My Loans</strong> to see all your loans and due dates</li>
-          <li>✓ Return books before the due date to avoid penalties</li>
+          <li>✓ Click "Reserve Book" button (only available books can be reserved)</li>
+          <li>✓ The book will be added to your reservations</li>
+          <li>✓ The admin handles the actual loan later</li>
+          <li>✓ Check <strong>My Reservations</strong> to see your reservations</li>
         </ul>
       </div>
     </div>

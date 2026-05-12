@@ -17,6 +17,16 @@ import {
   getRecentReservations
 } from '../services/reservationsService'
 
+const formatDateDDMMYYYY = (dateValue) => {
+  const date = new Date(dateValue)
+  if (Number.isNaN(date.getTime())) return '-'
+
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = date.getFullYear()
+  return `${day}/${month}/${year}`
+}
+
 function AdminDashboardPage() {
   // State for statistics
   const [stats, setStats] = useState({
@@ -37,6 +47,12 @@ function AdminDashboardPage() {
   // Load dashboard data
   useEffect(() => {
     loadDashboardData()
+  }, [])
+
+  useEffect(() => {
+    const onDataChanged = () => loadDashboardData()
+    window.addEventListener('libraryDataChanged', onDataChanged)
+    return () => window.removeEventListener('libraryDataChanged', onDataChanged)
   }, [])
 
   const loadDashboardData = async () => {
@@ -138,7 +154,6 @@ function AdminDashboardPage() {
         />
       </div>
 
-      {/* Recent Activity Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Recent Loans Table */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -187,7 +202,7 @@ function AdminDashboardPage() {
                                 : 'bg-green-100 text-green-800'
                             }`}
                           >
-                            {isOverdue ? 'Overdue' : 'Active'}
+                            {isOverdue ? 'Overdue' : 'Loan'}
                           </span>
                         </td>
                       </tr>
@@ -233,7 +248,7 @@ function AdminDashboardPage() {
                         {reservation.bookTitle || reservation.bookId}
                       </td>
                       <td className="px-6 py-4 text-gray-600">
-                        {new Date(reservation.createdAt).toLocaleDateString()}
+                        {formatDateDDMMYYYY(reservation.reservationDate || reservation.createdAt)}
                       </td>
                     </tr>
                   ))}

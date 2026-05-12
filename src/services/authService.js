@@ -21,39 +21,13 @@ const register = async ({
   name,
   email,
   password,
-  role,
-  staffType,
   phone,
-  libraryId,
 }) => {
-  const normalizedRole = typeof role === "string" ? role.toUpperCase() : role;
-  const normalizedStaffType =
-    typeof staffType === "string" ? staffType.toUpperCase() : staffType;
-
-  if (!name || !email || !password || !role) {
+  if (!name || !email || !password) {
     throw createError(
-      "Missing required fields: name, email, password, role",
+      "Missing required fields: name, email, password",
       400,
     );
-  }
-
-  if (!["MEMBER", "STAFF"].includes(normalizedRole)) {
-    throw createError("Role must be either MEMBER or STAFF", 400);
-  }
-
-  if (normalizedRole === "STAFF") {
-    if (!["ADMIN", "LIBRARIAN"].includes(normalizedStaffType || "")) {
-      throw createError("Staff type must be ADMIN or LIBRARIAN", 400);
-    }
-
-    if (libraryId) {
-      const library = await prisma.library.findUnique({
-        where: { id: libraryId },
-      });
-      if (!library) {
-        throw createError("Library not found", 404);
-      }
-    }
   }
 
   const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -68,24 +42,13 @@ const register = async ({
       name,
       email,
       password: hashedPassword,
-      role: normalizedRole,
-      staffType: normalizedRole === "STAFF" ? normalizedStaffType : null,
-      member:
-        normalizedRole === "MEMBER"
-          ? {
-              create: {
-                phone: phone || null,
-              },
-            }
-          : undefined,
-      staff:
-        normalizedRole === "STAFF"
-          ? {
-              create: {
-                libraryId: libraryId || null,
-              },
-            }
-          : undefined,
+      role: "MEMBER",
+      staffType: null,
+      member: {
+        create: {
+          phone: phone || null,
+        },
+      },
     },
   });
 

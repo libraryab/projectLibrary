@@ -7,7 +7,7 @@ function MainLayout({ children }) {
   const navigate = useNavigate()
   const location = useLocation()
   const { logout } = useAuth()
-  const { userRole } = useContext(AuthContext)
+  const { userRole, user } = useContext(AuthContext)
 
   const handleLogout = () => {
     logout()
@@ -15,15 +15,20 @@ function MainLayout({ children }) {
   }
 
   // Navigation links based on role
+  const isAdminStaff = userRole === 'admin' && String(user?.staffType || '').toUpperCase() === 'ADMIN'
+
   const navLinks = userRole === 'admin'
     ? [
         { path: '/admin-dashboard', label: 'Dashboard', icon: '📊' },
+        { path: '/admin-books', label: 'Manage Books', icon: '📚' },
         { path: '/admin-loans', label: 'Manage Loans', icon: '📋' },
-        { path: '/admin-add-books', label: 'Add Books', icon: '➕' }
+        { path: '/admin-add-books', label: 'Add Books', icon: '➕' },
+        ...(isAdminStaff ? [{ path: '/admin-users', label: 'Manage Users', icon: '👥' }] : [])
       ]
     : [
         { path: '/books', label: 'Browse Books', icon: '📚' },
-        { path: '/my-loans', label: 'My Loans', icon: '📖' }
+        { path: '/my-reservations', label: 'My Reservations', icon: '📖' },
+        { path: '/my-loans', label: 'My Loans', icon: '📝' }
       ]
 
   const isActive = (path) => location.pathname === path
@@ -38,7 +43,12 @@ function MainLayout({ children }) {
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Library Management</h1>
               <p className="text-xs text-gray-500 mt-1">
-                {userRole === 'admin' ? '🔑 Administrator' : '👤 Member'} Portal
+                {user?.name ? `${user.name} · ` : ''}
+                {userRole === 'admin'
+                  ? isAdminStaff
+                    ? '🔑 Administrator'
+                    : '👷 Librarian'
+                  : '👤 Member'} Portal
               </p>
             </div>
             <button

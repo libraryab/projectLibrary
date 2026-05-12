@@ -13,8 +13,6 @@ function RegisterPage() {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'MEMBER',
-    staffType: '',
   })
 
   const handleChange = (e) => {
@@ -41,11 +39,6 @@ function RegisterPage() {
       return
     }
 
-    if (formData.role === 'STAFF' && !formData.staffType) {
-      setError('Please select a staff type')
-      return
-    }
-
     setLoading(true)
 
     try {
@@ -53,8 +46,6 @@ function RegisterPage() {
         name: formData.name,
         email: formData.email,
         password: formData.password,
-        role: formData.role,
-        staffType: formData.role === 'STAFF' ? formData.staffType : undefined,
       })
       
       // Extract user data and role from response (handle different response structures)
@@ -157,43 +148,9 @@ function RegisterPage() {
             />
           </div>
 
-          <div>
-            <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
-              Registration Type
-            </label>
-            <select
-              id="role"
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition"
-              disabled={loading}
-            >
-              <option value="MEMBER">Library Member</option>
-              <option value="STAFF">Staff</option>
-            </select>
+          <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-4 text-sm text-indigo-900">
+            New accounts are created as Library Member. A staff user can later promote or demote the account.
           </div>
-
-          {formData.role === 'STAFF' && (
-            <div>
-              <label htmlFor="staffType" className="block text-sm font-medium text-gray-700 mb-1">
-                Staff Type
-              </label>
-              <select
-                id="staffType"
-                name="staffType"
-                value={formData.staffType}
-                onChange={handleChange}
-                required={formData.role === 'STAFF'}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition"
-                disabled={loading}
-              >
-                <option value="">-- Select Type --</option>
-                <option value="ADMIN">Admin</option>
-                <option value="LIBRARIAN">Librarian</option>
-              </select>
-            </div>
-          )}
 
           <button
             type="submit"

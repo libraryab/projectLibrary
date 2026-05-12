@@ -1,16 +1,57 @@
 const prisma = require("../lib/prisma");
 
-const createReservation = async ({ bookId, memberId, bookCopyId }) => {
-  if (!bookId || !memberId) {
-    const error = new Error("Missing required fields: bookId, memberId");
+const mapReservation = (reservation) => ({
+  ...reservation,
+  memberName: reservation.member?.user?.name || null,
+  bookTitle: reservation.book?.title || null,
+});
+
+const resolveMemberId = async ({ memberId, userId }) => {
+  if (memberId) {
+    const member = await prisma.member.findUnique({ where: { id: memberId } });
+    if (!member) {
+      const error = new Error("Member not found");
+      error.status = 404;
+      throw error;
+    }
+    return member.id;
+  }
+
+  if (userId) {
+    const member = await prisma.member.findUnique({ where: { userId } });
+    if (!member) {
+      const error = new Error("Member profile not found for this user");
+      error.status = 404;
+      throw error;
+    }
+    return member.id;
+  }
+
+  const error = new Error("Missing member reference (memberId or userId)");
+  error.status = 400;
+  throw error;
+};
+
+const createReservation = async ({ bookId, memberId, userId, bookCopyId }) => {
+  if (!bookId) {
+    const error = new Error("Missing required field: bookId");
     error.status = 400;
+    throw error;
+  }
+
+  const resolvedMemberId = await resolveMemberId({ memberId, userId });
+
+  const book = await prisma.book.findUnique({ where: { id: bookId } });
+  if (!book) {
+    const error = new Error("Book not found");
+    error.status = 404;
     throw error;
   }
 
   const existing = await prisma.reservation.findFirst({
     where: {
       bookId,
-      memberId,
+      memberId: resolvedMemberId,
       status: "ACTIVE",
     },
   });
@@ -37,7 +78,7 @@ const createReservation = async ({ bookId, memberId, bookCopyId }) => {
   return prisma.reservation.create({
     data: {
       bookId,
-      memberId,
+      memberId: resolvedMemberId,
       bookCopyId: bookCopyId || null,
       status: "ACTIVE",
     },
@@ -45,32 +86,76 @@ const createReservation = async ({ bookId, memberId, bookCopyId }) => {
 };
 
 const getReservations = async (status) => {
-  return prisma.reservation.findMany({
+  const reservations = await prisma.reservation.findMany({
     where: status ? { status: status.toUpperCase() } : undefined,
     orderBy: { reservationDate: "desc" },
+    include: {
+      member: {
+        include: {
+          user: {
+            select: { name: true },
+          },
+        },
+      },
+      book: {
+        select: { title: true },
+      },
+    },
   });
+
+  return reservations.map(mapReservation);
 };
 
-const getMemberReservations = async (memberId) => {
+const getMemberReservations = async (memberIdOrUserId) => {
+  const resolvedMemberId = await resolveMemberId({
+    memberId: memberIdOrUserId,
+  }).catch(async () => resolveMemberId({ userId: memberIdOrUserId }));
+
   const reservations = await prisma.reservation.findMany({
-    where: { memberId },
+    where: { memberId: resolvedMemberId },
     orderBy: { reservationDate: "desc" },
+    include: {
+      member: {
+        include: {
+          user: {
+            select: { name: true },
+          },
+        },
+      },
+      book: {
+        select: { title: true },
+      },
+    },
   });
 
   return {
-    member: { id: memberId },
-    reservations,
+    member: { id: resolvedMemberId },
+    reservations: reservations.map(mapReservation),
   };
 };
 
 const getReservationById = async (id) => {
-  const reservation = await prisma.reservation.findUnique({ where: { id } });
+  const reservation = await prisma.reservation.findUnique({
+    where: { id },
+    include: {
+      member: {
+        include: {
+          user: {
+            select: { name: true },
+          },
+        },
+      },
+      book: {
+        select: { title: true },
+      },
+    },
+  });
   if (!reservation) {
     const error = new Error("Reservation not found");
     error.status = 404;
     throw error;
   }
-  return reservation;
+  return mapReservation(reservation);
 };
 
 const updateReservation = async (id, { status, bookCopyId }) => {
