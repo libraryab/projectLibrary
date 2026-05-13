@@ -14,6 +14,11 @@ export function AuthProvider({ children }) {
     const token = tokenUtils.getToken()
     if (token) {
       setIsAuthenticated(true)
+      // Try to restore user role from localStorage if available
+      const savedRole = localStorage.getItem('userRole')
+      if (savedRole) {
+        setUserRole(savedRole)
+      }
     }
     setIsLoading(false)
   }, [])
@@ -36,6 +41,8 @@ export function AuthProvider({ children }) {
     
     setUserRole(normalizedRole)
     setIsAuthenticated(true)
+    // Persist role to localStorage for recovery after page reload
+    localStorage.setItem('userRole', normalizedRole)
   }
 
   const logout = () => {
@@ -43,6 +50,7 @@ export function AuthProvider({ children }) {
     setUserRole(null)
     setIsAuthenticated(false)
     tokenUtils.removeToken()
+    localStorage.removeItem('userRole')
   }
 
   return (

@@ -17,9 +17,28 @@ import AdminBooksPage from './pages/AdminBooksPage'
 import AdminEditBooksPage from './pages/AdminEditBooksPage'
 import BookDetailPage from './pages/BookDetailPage'
 
-// Component to handle default redirect - always go to login
+// Component to handle role-based redirect - routes based on user role
 function RoleBasedRedirect() {
-  return <Navigate to="/login" replace />
+  const { userRole, isLoading, isAuthenticated } = useContext(AuthContext)
+  
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-xl text-gray-600">Loading...</div>
+      </div>
+    )
+  }
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+  
+  // Route based on role
+  if (userRole === 'admin') {
+    return <Navigate to="/admin-dashboard" replace />
+  }
+  
+  return <Navigate to="/books" replace />
 }
 
 function App() {
@@ -141,10 +160,8 @@ function App() {
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <MainLayout>
-                  <AdminDashboardPage />
-                </MainLayout>
+              <ProtectedRoute>
+                <RoleBasedRedirect />
               </ProtectedRoute>
             }
           />
