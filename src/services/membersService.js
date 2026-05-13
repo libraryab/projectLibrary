@@ -33,7 +33,13 @@ const getMembers = async (search) => {
     : undefined;
 
   const members = await prisma.member.findMany({
-    where,
+    where: {
+      ...(where || {}),
+      user: {
+        ...(where?.user || {}),
+        role: "MEMBER",
+      },
+    },
     include: { user: true },
     orderBy: { createdAt: "desc" },
   });

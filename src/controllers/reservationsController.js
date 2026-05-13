@@ -2,7 +2,10 @@ const reservationsService = require("../services/reservationsService");
 
 const createReservation = async (req, res) => {
   try {
-    const reservation = await reservationsService.createReservation(req.body);
+    const reservation = await reservationsService.createReservation({
+      ...req.body,
+      userId: req.user?.id,
+    });
     return res.status(201).json(reservation);
   } catch (error) {
     return res

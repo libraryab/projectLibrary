@@ -7,7 +7,7 @@ const register = async (req, res) => {
   } catch (error) {
     return res
       .status(error.status || 500)
-      .json({ error: error.message || "Internal server error" });
+      .json({ message: error.message || "Internal server error" });
   }
 };
 
@@ -18,7 +18,7 @@ const login = async (req, res) => {
   } catch (error) {
     return res
       .status(error.status || 500)
-      .json({ error: error.message || "Internal server error" });
+      .json({ message: error.message || "Internal server error" });
   }
 };
 
@@ -29,7 +29,7 @@ const getMe = async (req, res) => {
   } catch (error) {
     return res
       .status(error.status || 500)
-      .json({ error: error.message || "Internal server error" });
+      .json({ message: error.message || "Internal server error" });
   }
 };
 
