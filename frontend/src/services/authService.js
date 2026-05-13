@@ -21,7 +21,11 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // Only redirect to login if:
+    // 1. Status is 401 (Unauthorized)
+    // 2. There's already a token stored (meaning token expired, not just bad credentials)
+    // 3. The request was NOT to the login endpoint
+    if (error.response?.status === 401 && tokenUtils.hasToken() && error.config?.url !== '/auth/login') {
       tokenUtils.removeToken()
       window.location.href = '/login'
     }

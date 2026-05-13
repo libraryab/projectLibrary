@@ -43,9 +43,21 @@ function LoginPage() {
       
       login(userWithRole)
       
-      // Redirect to where they came from or dashboard
-      const from = location.state?.from?.pathname || '/dashboard'
-      navigate(from)
+      // Redirect based on role
+      const role = String(userWithRole.role || '').toUpperCase()
+      let redirectPath = '/books' // Default for members
+      
+      if (role === 'ADMIN' || role === 'STAFF' || role === 'ADMINISTRATOR') {
+        redirectPath = '/admin-dashboard'
+      }
+      
+      // Override if user came from a specific page
+      const from = location.state?.from?.pathname
+      if (from && from !== '/login') {
+        redirectPath = from
+      }
+      
+      navigate(redirectPath)
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Please try again.')
       console.error('Login error:', err)
