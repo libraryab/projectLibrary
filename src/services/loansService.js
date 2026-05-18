@@ -1,4 +1,5 @@
 const prisma = require("../lib/prisma");
+const { errorFactory } = require("../utils/errors");
 
 const mapLoan = (loan) => {
   const now = new Date();
@@ -24,11 +25,9 @@ const createLoan = async ({
   bookId,
 }) => {
   if (!bookCopyId || !memberId || !dueDate || !bookId) {
-    const error = new Error(
+    throw errorFactory.validationError(
       "Missing required fields: bookCopyId, memberId, dueDate, bookId",
     );
-    error.status = 400;
-    throw error;
   }
 
   return prisma.$transaction(async (tx) => {
@@ -42,15 +41,11 @@ const createLoan = async ({
     });
 
     if (!member) {
-      const error = new Error("Member not found");
-      error.status = 404;
-      throw error;
+      throw errorFactory.notFound("Member");
     }
 
     if (member.user?.role !== "MEMBER") {
-      const error = new Error("Loans can only be created for library members");
-      error.status = 400;
-      throw error;
+      throw errorFactory.validationError("Loans can only be created for library members");
     }
 
     // If this member already has an active reservation for the same book,

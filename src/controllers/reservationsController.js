@@ -1,82 +1,103 @@
 const reservationsService = require("../services/reservationsService");
 
-const createReservation = async (req, res) => {
+const createReservation = async (req, res, next) => {
   try {
     const reservation = await reservationsService.createReservation({
       ...req.body,
       userId: req.user?.id,
     });
-    return res.status(201).json(reservation);
+    return res.status(201).json({
+      status: 201,
+      code: 'CREATED',
+      message: 'Reservation created successfully',
+      data: reservation,
+      timestamp: new Date().toISOString(),
+    });
   } catch (error) {
-    return res
-      .status(error.status || 500)
-      .json({ error: error.message || "Internal server error" });
+    next(error);
   }
 };
 
-const getReservations = async (req, res) => {
+const getReservations = async (req, res, next) => {
   try {
     const reservations = await reservationsService.getReservations(
       req.query.status,
     );
-    return res.status(200).json(reservations);
+    return res.status(200).json({
+      status: 200,
+      code: 'SUCCESS',
+      message: 'Reservations retrieved successfully',
+      data: reservations,
+      timestamp: new Date().toISOString(),
+    });
   } catch (error) {
-    return res
-      .status(error.status || 500)
-      .json({ error: error.message || "Internal server error" });
+    next(error);
   }
 };
 
-const getMemberReservations = async (req, res) => {
+const getMemberReservations = async (req, res, next) => {
   try {
     const data = await reservationsService.getMemberReservations(
       req.params.memberId,
     );
-    return res.status(200).json(data);
+    return res.status(200).json({
+      status: 200,
+      code: 'SUCCESS',
+      message: 'Member reservations retrieved successfully',
+      data,
+      timestamp: new Date().toISOString(),
+    });
   } catch (error) {
-    return res
-      .status(error.status || 500)
-      .json({ error: error.message || "Internal server error" });
+    next(error);
   }
 };
 
-const cancelReservation = async (req, res) => {
+const cancelReservation = async (req, res, next) => {
   try {
     await reservationsService.cancelReservation(req.params.id);
-    return res
-      .status(200)
-      .json({ message: "Reservation cancelled successfully" });
+    return res.status(200).json({
+      status: 200,
+      code: 'SUCCESS',
+      message: 'Reservation cancelled successfully',
+      timestamp: new Date().toISOString(),
+    });
   } catch (error) {
-    return res
-      .status(error.status || 500)
-      .json({ error: error.message || "Internal server error" });
+    next(error);
   }
 };
 
-const getReservationById = async (req, res) => {
+const getReservationById = async (req, res, next) => {
   try {
     const reservation = await reservationsService.getReservationById(
       req.params.id,
     );
-    return res.status(200).json(reservation);
+    return res.status(200).json({
+      status: 200,
+      code: 'SUCCESS',
+      message: 'Reservation retrieved successfully',
+      data: reservation,
+      timestamp: new Date().toISOString(),
+    });
   } catch (error) {
-    return res
-      .status(error.status || 500)
-      .json({ error: error.message || "Internal server error" });
+    next(error);
   }
 };
 
-const updateReservation = async (req, res) => {
+const updateReservation = async (req, res, next) => {
   try {
     const reservation = await reservationsService.updateReservation(
       req.params.id,
       req.body,
     );
-    return res.status(200).json(reservation);
+    return res.status(200).json({
+      status: 200,
+      code: 'SUCCESS',
+      message: 'Reservation updated successfully',
+      data: reservation,
+      timestamp: new Date().toISOString(),
+    });
   } catch (error) {
-    return res
-      .status(error.status || 500)
-      .json({ error: error.message || "Internal server error" });
+    next(error);
   }
 };
 

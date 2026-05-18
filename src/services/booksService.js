@@ -1,4 +1,5 @@
 const prisma = require("../lib/prisma");
+const { validateDescription } = require("../utils/validators");
 
 const getBooks = async ({ search, skip = 0, take = 10 }) => {
   const parsedSkip = Number.parseInt(skip, 10) || 0;
@@ -108,13 +109,25 @@ const createBook = async ({ title, publisherId, libraryId, isbn, year, descripti
     throw error;
   }
 
+  // Validate description if provided
+  let validatedDescription = null;
+  if (description && description.trim()) {
+    const descValidation = validateDescription(description);
+    if (!descValidation.valid) {
+      const error = new Error(descValidation.error);
+      error.status = 400;
+      throw error;
+    }
+    validatedDescription = descValidation.value;
+  }
+
   const data = {
     title,
     publisherId: publisherId || null,
     libraryId,
     isbn: isbn || null,
     year: year !== undefined && year !== null ? Number(year) : null,
-    description: description || null,
+    description: validatedDescription,
     authors: authors && Array.isArray(authors) ? {
       create: authors.map(name => ({ name }))
     } : undefined,
@@ -135,12 +148,28 @@ const updateBook = async (id, { title, publisherId, isbn, year, description, aut
     throw error;
   }
 
+  // Validate description if provided
+  let validatedDescription = current.description;
+  if (description !== undefined) {
+    if (description && description.trim()) {
+      const descValidation = validateDescription(description);
+      if (!descValidation.valid) {
+        const error = new Error(descValidation.error);
+        error.status = 400;
+        throw error;
+      }
+      validatedDescription = descValidation.value;
+    } else {
+      validatedDescription = null;
+    }
+  }
+
   const updateData = {
     title: title ?? current.title,
     publisherId: publisherId ?? current.publisherId,
     isbn: isbn !== undefined ? (isbn || null) : current.isbn,
     year: year !== undefined && year !== null ? Number(year) : current.year,
-    description: description !== undefined ? (description || null) : current.description,
+    description: validatedDescription,
   }
 
   // If authors provided, remove existing and recreate

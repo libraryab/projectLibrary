@@ -1,5 +1,6 @@
 const express = require("express");
 const authMiddleware = require("../middleware/auth");
+const { validateUUIDParam } = require("../middleware/validateParams");
 const booksController = require("../controllers/booksController");
 
 const router = express.Router();
@@ -8,7 +9,7 @@ const router = express.Router();
 router.get("/", booksController.getBooks);
 
 // ===== GET /api/v1/books/:id =====
-router.get("/:id", booksController.getBookById);
+router.get("/:id", validateUUIDParam('id'), booksController.getBookById);
 
 // ===== POST /api/v1/books =====
 router.post(
@@ -21,6 +22,7 @@ router.post(
 // ===== PUT /api/v1/books/:id =====
 router.put(
   "/:id",
+  validateUUIDParam('id'),
   authMiddleware,
   authMiddleware.requireStaffType("ADMIN", "LIBRARIAN"),
   booksController.updateBook,
@@ -29,6 +31,7 @@ router.put(
 // ===== DELETE /api/v1/books/:id =====
 router.delete(
   "/:id",
+  validateUUIDParam('id'),
   authMiddleware,
   authMiddleware.requireStaffType("ADMIN", "LIBRARIAN"),
   booksController.deleteBook,

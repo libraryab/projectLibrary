@@ -1,5 +1,6 @@
 const express = require("express");
 const authMiddleware = require("../middleware/auth");
+const { validateUUIDParam } = require("../middleware/validateParams");
 const loansController = require("../controllers/loansController");
 
 const router = express.Router();
@@ -16,7 +17,7 @@ router.post(
 router.get("/", loansController.getLoans);
 
 // ===== GET /api/v1/loans/:id =====
-router.get("/:id", loansController.getLoanById);
+router.get("/:id", validateUUIDParam('id'), loansController.getLoanById);
 
 // ===== GET /api/v1/loans/overdue =====
 router.get(
@@ -27,11 +28,12 @@ router.get(
 );
 
 // ===== GET /api/v1/members/:memberId/loans =====
-router.get("/member/:memberId", loansController.getMemberLoans);
+router.get("/member/:memberId", validateUUIDParam('memberId'), loansController.getMemberLoans);
 
 // ===== PATCH /api/v1/loans/:id/return =====
 router.patch(
   "/:id/return",
+  validateUUIDParam('id'),
   authMiddleware,
   authMiddleware.requireStaffType("ADMIN", "LIBRARIAN"),
   loansController.returnLoan,
