@@ -33,6 +33,13 @@ export default function BookForm({
     if (formData.isbn && formData.isbn.trim().length > 0 && !/^[0-9-]{10,17}$/.test(formData.isbn.trim())) {
       newErrors.isbn = 'Invalid ISBN format'
     }
+    // Validate description: non-empty, max 500 chars
+    if (formData.description && formData.description.trim().length > 0) {
+      const descLength = formData.description.trim().length
+      if (descLength > 500) {
+        newErrors.description = 'Description must not exceed 500 characters'
+      }
+    }
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -170,8 +177,16 @@ export default function BookForm({
                 onChange={handleChange}
                 placeholder="Enter book description (optional)"
                 rows="4"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${
+                  errors.description ? 'border-red-500' : 'border-gray-300'
+                }`}
               />
+              <div className="flex justify-between items-start mt-1">
+                {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
+                <p className="text-gray-500 text-sm ml-auto">
+                  {formData.description.length}/500
+                </p>
+              </div>
             </div>
 
             {/* Availability */}

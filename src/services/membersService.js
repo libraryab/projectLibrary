@@ -1,4 +1,5 @@
 const prisma = require("../lib/prisma");
+const { errorFactory } = require("../utils/errors");
 
 const mapMember = (member) => ({
   id: member.id,
@@ -54,9 +55,7 @@ const getMemberById = async (id) => {
   });
 
   if (!member) {
-    const error = new Error("Member not found");
-    error.status = 404;
-    throw error;
+    throw errorFactory.notFound("Member");
   }
 
   return mapMember(member);
@@ -64,19 +63,15 @@ const getMemberById = async (id) => {
 
 const createMember = async ({ name, email, password, phone }) => {
   if (!name || !email || !password) {
-    const error = new Error(
+    throw errorFactory.validationError(
       "Missing required fields: name, email, password",
     );
-    error.status = 400;
-    throw error;
   }
 
   // Check if email already exists
   const existingUser = await prisma.user.findUnique({ where: { email } });
   if (existingUser) {
-    const error = new Error("Email already registered");
-    error.status = 409;
-    throw error;
+    throw errorFactory.conflict("Email already registered");
   }
 
   // Hash password
@@ -109,9 +104,7 @@ const updateMember = async (id, { name, phone }) => {
   });
 
   if (!member) {
-    const error = new Error("Member not found");
-    error.status = 404;
-    throw error;
+    throw errorFactory.notFound("Member");
   }
 
   // Update user name if provided, and member phone
@@ -139,9 +132,7 @@ const deleteMember = async (id) => {
   });
 
   if (!member) {
-    const error = new Error("Member not found");
-    error.status = 404;
-    throw error;
+    throw errorFactory.notFound("Member");
   }
 
   // Delete user (cascades to member via onDelete: Cascade)

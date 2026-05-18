@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const prisma = require("../lib/prisma");
 const { generateToken } = require("../utils/jwt");
+const { validateEmail, validatePassword, validateName } = require("../utils/validators");
 
 const createError = (message, status) => {
   const error = new Error(message);
@@ -23,24 +24,35 @@ const register = async ({
   password,
   phone,
 }) => {
-  if (!name || !email || !password) {
-    throw createError(
-      "Missing required fields: name, email, password",
-      400,
-    );
+  // Validate email
+  const emailValidation = validateEmail(email);
+  if (!emailValidation.valid) {
+    throw createError(emailValidation.error, 400);
   }
 
-  const existingUser = await prisma.user.findUnique({ where: { email } });
+  // Validate password
+  const passwordValidation = validatePassword(password);
+  if (!passwordValidation.valid) {
+    throw createError(passwordValidation.error, 400);
+  }
+
+  // Validate name
+  const nameValidation = validateName(name);
+  if (!nameValidation.valid) {
+    throw createError(nameValidation.error, 400);
+  }
+
+  const existingUser = await prisma.user.findUnique({ where: { email: emailValidation.value } });
   if (existingUser) {
     throw createError("Email already registered", 409);
   }
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+  const hashedPassword = await bcrypt.hash(passwordValidation.value, 10);
 
   const user = await prisma.user.create({
     data: {
-      name,
-      email,
+      name: nameValidation.value,
+      email: emailValidation.value,
       password: hashedPassword,
       role: "MEMBER",
       staffType: null,
@@ -56,17 +68,25 @@ const register = async ({
 };
 
 const login = async ({ email, password }) => {
-  if (!email || !password) {
-    throw createError("Missing required fields: email, password", 400);
+  // Validate email
+  const emailValidation = validateEmail(email);
+  if (!emailValidation.valid) {
+    throw createError(emailValidation.error, 400);
   }
 
-  const user = await prisma.user.findUnique({ where: { email } });
+  // Validate password
+  const passwordValidation = validatePassword(password);
+  if (!passwordValidation.valid) {
+    throw createError(passwordValidation.error, 400);
+  }
+
+  const user = await prisma.user.findUnique({ where: { email: emailValidation.value } });
 
   if (!user) {
     throw createError("Invalid email or password", 401);
   }
 
-  const isPasswordValid = await bcrypt.compare(password, user.password);
+  const isPasswordValid = await bcrypt.compare(passwordValidation.value, user.password);
   if (!isPasswordValid) {
     throw createError("Invalid email or password", 401);
   }

@@ -1,68 +1,92 @@
 const loansService = require("../services/loansService");
 
-const createLoan = async (req, res) => {
+const createLoan = async (req, res, next) => {
   try {
     const loan = await loansService.createLoan(req.body);
-    return res.status(201).json(loan);
+    return res.status(201).json({
+      status: 201,
+      code: 'CREATED',
+      message: 'Loan created successfully',
+      data: loan,
+      timestamp: new Date().toISOString(),
+    });
   } catch (error) {
-    return res
-      .status(error.status || 500)
-      .json({ error: error.message || "Internal server error" });
+    next(error);
   }
 };
 
-const getLoans = async (req, res) => {
+const getLoans = async (req, res, next) => {
   try {
     const loans = await loansService.getLoans(req.query);
-    return res.status(200).json(loans);
+    return res.status(200).json({
+      status: 200,
+      code: 'SUCCESS',
+      message: 'Loans retrieved successfully',
+      data: loans,
+      timestamp: new Date().toISOString(),
+    });
   } catch (error) {
-    return res
-      .status(error.status || 500)
-      .json({ error: error.message || "Internal server error" });
+    next(error);
   }
 };
 
-const getLoanById = async (req, res) => {
+const getLoanById = async (req, res, next) => {
   try {
     const loan = await loansService.getLoanById(req.params.id);
-    return res.status(200).json(loan);
+    return res.status(200).json({
+      status: 200,
+      code: 'SUCCESS',
+      message: 'Loan retrieved successfully',
+      data: loan,
+      timestamp: new Date().toISOString(),
+    });
   } catch (error) {
-    return res
-      .status(error.status || 500)
-      .json({ error: error.message || "Internal server error" });
+    next(error);
   }
 };
 
-const getMemberLoans = async (req, res) => {
+const getMemberLoans = async (req, res, next) => {
   try {
     const data = await loansService.getMemberLoans(req.params.memberId);
-    return res.status(200).json(data);
+    return res.status(200).json({
+      status: 200,
+      code: 'SUCCESS',
+      message: 'Member loans retrieved successfully',
+      data,
+      timestamp: new Date().toISOString(),
+    });
   } catch (error) {
-    return res
-      .status(error.status || 500)
-      .json({ error: error.message || "Internal server error" });
+    next(error);
   }
 };
 
-const returnLoan = async (req, res) => {
+const returnLoan = async (req, res, next) => {
   try {
     const loan = await loansService.returnLoan(req.params.id);
-    return res.status(200).json(loan);
+    return res.status(200).json({
+      status: 200,
+      code: 'SUCCESS',
+      message: 'Loan returned successfully',
+      data: loan,
+      timestamp: new Date().toISOString(),
+    });
   } catch (error) {
-    return res
-      .status(error.status || 500)
-      .json({ error: error.message || "Internal server error" });
+    next(error);
   }
 };
 
-const getOverdueLoans = async (req, res) => {
+const getOverdueLoans = async (req, res, next) => {
   try {
     const loans = await loansService.getOverdueLoans();
-    return res.status(200).json(loans);
+    return res.status(200).json({
+      status: 200,
+      code: 'SUCCESS',
+      message: 'Overdue loans retrieved successfully',
+      data: loans,
+      timestamp: new Date().toISOString(),
+    });
   } catch (error) {
-    return res
-      .status(error.status || 500)
-      .json({ error: error.message || "Internal server error" });
+    next(error);
   }
 };
 

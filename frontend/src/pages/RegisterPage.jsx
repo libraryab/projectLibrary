@@ -28,14 +28,50 @@ function RegisterPage() {
     e.preventDefault()
     setError('')
 
-    // Validation
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match')
+    // Validate name: non-empty, max 100 chars, no HTML tags
+    const name = formData.name.trim()
+    if (!name) {
+      setError('Name is required')
+      return
+    }
+    if (name.length > 100) {
+      setError('Name must not exceed 100 characters')
+      return
+    }
+    if (/<[^>]*>/.test(name)) {
+      setError('Name cannot contain HTML tags')
       return
     }
 
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters')
+    // Validate email: non-empty, valid format, max 255 chars
+    const email = formData.email.trim()
+    if (!email) {
+      setError('Email is required')
+      return
+    }
+    if (email.length > 255) {
+      setError('Email must not exceed 255 characters')
+      return
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address')
+      return
+    }
+
+    // Validate password: min 8 chars, max 128 chars
+    if (formData.password.length < 8) {
+      setError('Password must be at least 8 characters')
+      return
+    }
+    if (formData.password.length > 128) {
+      setError('Password must not exceed 128 characters')
+      return
+    }
+
+    // Validate confirm password matches
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match')
       return
     }
 
@@ -43,8 +79,8 @@ function RegisterPage() {
 
     try {
       const response = await authService.register({
-        name: formData.name,
-        email: formData.email,
+        name,
+        email,
         password: formData.password,
       })
       
@@ -126,7 +162,7 @@ function RegisterPage() {
               onChange={handleChange}
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition"
-              placeholder="At least 6 characters"
+              placeholder="At least 8 characters"
               disabled={loading}
             />
           </div>
