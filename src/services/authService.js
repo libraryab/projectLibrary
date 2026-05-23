@@ -74,10 +74,9 @@ const login = async ({ email, password }) => {
     throw createError(emailValidation.error, 400);
   }
 
-  // Validate password
-  const passwordValidation = validatePassword(password);
-  if (!passwordValidation.valid) {
-    throw createError(passwordValidation.error, 400);
+  // Login must accept existing accounts regardless of password length.
+  if (typeof password !== "string" || password.length === 0) {
+    throw createError("Password is required", 400);
   }
 
   const user = await prisma.user.findUnique({ where: { email: emailValidation.value } });
@@ -86,7 +85,7 @@ const login = async ({ email, password }) => {
     throw createError("Invalid email or password", 401);
   }
 
-  const isPasswordValid = await bcrypt.compare(passwordValidation.value, user.password);
+  const isPasswordValid = await bcrypt.compare(password, user.password);
   if (!isPasswordValid) {
     throw createError("Invalid email or password", 401);
   }

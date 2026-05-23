@@ -271,7 +271,7 @@ export default function AdminBooksPage() {
 
       // Find member by email
       const resp = await apiClient.get(`/members?search=${encodeURIComponent(normalizedEmail)}`)
-      const membersData = resp.data?.value || resp.data?.value || resp.data || []
+      const membersData = resp.data?.data || resp.data || []
       const member = Array.isArray(membersData) ? membersData[0] : undefined
       if (!member) {
         setLoanError('Member not found. Please verify the email.')

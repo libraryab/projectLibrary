@@ -31,11 +31,11 @@ function LoginPage() {
     try {
       const response = await authService.login(formData.email, formData.password)
       
-      // Extract user data and role from response (handle different response structures)
-      const userData = response.user || response
+      // Normalize user data from the auth service response
+      const userData = response.user || response.raw?.data?.user || response.raw?.user || response
       const userWithRole = {
         ...userData,
-        role: userData.role || userData.userRole || 'member'
+        role: userData.role || userData.userRole || 'member',
       }
       
       console.log('Login response:', response)

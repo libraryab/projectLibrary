@@ -9,7 +9,7 @@ const normalizeBook = (book) => ({
 })
 
 const extractBooksList = (responseData) => {
-  const books = responseData?.books || responseData?.data || responseData
+  const books = responseData?.data?.books || responseData?.books || responseData?.data || responseData
   if (!Array.isArray(books)) return []
   return books.map(normalizeBook)
 }
@@ -121,7 +121,7 @@ export const createBook = async (bookData) => {
     const response = await axios.post(`${API_BASE_URL}/books`, payload, {
       headers,
     });
-    return response.data.data || response.data;
+    return normalizeBook(response.data.data || response.data);
   } catch (error) {
     console.error("Error creating book:", error);
     console.error("Error status:", error.response?.status);
