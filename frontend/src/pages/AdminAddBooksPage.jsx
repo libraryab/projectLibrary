@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { createBook } from '../services/booksService'
 import { createLibrary, getAllLibraries } from '../services/librariesService'
 
 function AdminAddBooksPage() {
+  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     title: '',
     author: '',
@@ -96,6 +98,7 @@ function AdminAddBooksPage() {
       setTimeout(() => {
         setSuccess(false)
         setMessage('')
+        navigate('/admin-books')
       }, 3000)
     } catch (err) {
       console.error('Error adding book:', err)

@@ -8,6 +8,18 @@ const apiClient = axios.create({
   baseURL: API_BASE_URL,
 })
 
+const unwrapAuthResponse = (response) => {
+  const payload = response?.data?.data || response?.data || {}
+  const token = payload.token || response?.data?.token || null
+  const user = payload.user || response?.data?.user || payload || null
+
+  if (token) {
+    tokenUtils.setToken(token)
+  }
+
+  return { token, user, raw: response?.data }
+}
+
 // Add token to request headers
 apiClient.interceptors.request.use((config) => {
   const token = tokenUtils.getToken()
@@ -36,18 +48,12 @@ apiClient.interceptors.response.use(
 export const authService = {
   login: async (email, password) => {
     const response = await apiClient.post('/auth/login', { email, password })
-    if (response.data.token) {
-      tokenUtils.setToken(response.data.token)
-    }
-    return response.data
+    return unwrapAuthResponse(response)
   },
 
   register: async (userData) => {
     const response = await apiClient.post('/auth/register', userData)
-    if (response.data.token) {
-      tokenUtils.setToken(response.data.token)
-    }
-    return response.data
+    return unwrapAuthResponse(response)
   },
 
   logout: () => {

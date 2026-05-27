@@ -20,9 +20,10 @@ function AdminUsersPage() {
       setLoading(true)
       setError('')
       const data = await getUsers(search)
-      setUsers(data)
+      const usersList = Array.isArray(data) ? data : []
+      setUsers(usersList)
       setStaffTypeByUser(
-        data.reduce((acc, currentUser) => {
+        usersList.reduce((acc, currentUser) => {
           acc[currentUser.id] = currentUser.staffType || 'LIBRARIAN'
           return acc
         }, {}),
